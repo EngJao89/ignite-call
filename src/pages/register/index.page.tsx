@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -30,13 +32,27 @@ export default function Register() {
     resolver: zodResolver(registerFormSchema),
   })
 
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.query.username) {
+      setValue('username', String(router.query.username))
+    }
+  }, [router.query?.username, setValue])
+
+  async function handleRegister(data: RegisterFormData) {
+    const { username } = data
+
+    await router.push(`/register?username=${username}`)
+  }
+
   return (
     <Container>
       <Header>
         <Heading as="strong">Bem-vindo ao Ignite Call!</Heading>
         <Text>
-          Precisamos de algumas informações para criar seu perfil! Ah, você
-          pode editar essas informações depois.
+          Precisamos de algumas informações para criar seu perfil! Ah, você pode
+          editar essas informações depois.
         </Text>
 
         <MultiStep size={4} currentStep={1} />
@@ -70,6 +86,6 @@ export default function Register() {
           <ArrowRight />
         </Button>
       </Form>
-  </Container>
+    </Container>
   )
 }
