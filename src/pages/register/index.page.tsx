@@ -1,11 +1,14 @@
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { AxiosError } from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button, Heading, MultiStep, Text, TextInput } from '@ignite-ui/react'
 import { ArrowRight } from 'phosphor-react'
 import { Container, Form, FormError, Header } from './styles'
+import { api } from '../../lib/axios'
+
 
 const registerFormSchema = z.object({
   username: z
@@ -41,9 +44,21 @@ export default function Register() {
   }, [router.query?.username, setValue])
 
   async function handleRegister(data: RegisterFormData) {
-    const { username } = data
+    try {
+      await api.post('/users', {
+        name: data.name,
+        username: data.username,
+      })
 
-    await router.push(`/register?username=${username}`)
+      await router.push('/register/connect-calendar')
+    } catch (err) {
+      if (err instanceof AxiosError && err?.response?.data?.message) {
+        alert(err.response.data.message)
+        return
+      }
+
+      console.error(err)
+    }
   }
 
   return (
@@ -58,7 +73,7 @@ export default function Register() {
         <MultiStep size={4} currentStep={1} />
       </Header>
 
-      <Form as="form">
+      <Form as="form" onSubmit={handleSubmit(handleRegister)}>
         <label>
           <Text size="sm">Nome de usuário</Text>
           <TextInput
